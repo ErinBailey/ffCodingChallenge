@@ -13,20 +13,6 @@ type MachineInfo struct {
 	Longitude string `csv:"longitude (N)"`
 }
 
-// func (m *MachineInfo) UnmarshalCSV(val string, row *csv.Row) error {
-// 	name, _ := row.Named("Name")
-// 	address, _ := row.Named("Address")
-// 	latitude, _ := row.Named("Latitude")
-// 	longitude, _ := row.Named("Longitude")
-
-// 	m.Name = name
-// 	m.Address = address
-// 	m.Latitude = latitude
-// 	m.Longitude = longitude
-
-// 	return nil
-// }
-
 func UnmarshalCSV() error {
 	machineLocations := []MachineInfo{}
 
