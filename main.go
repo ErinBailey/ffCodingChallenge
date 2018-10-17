@@ -29,8 +29,7 @@ Chase Tower,"Chase Tower, 111 E Wisconsin Ave, Milwaukee, WI 53202",43.0379231,-
 		fmt.Println("Error unmarshalling data: ", err.Error())
 		return err
 	}
-
-	fmt.Printf("%+v", machineLocations)
+	fmt.Println(machineLocations)
 	return nil
 }
 
