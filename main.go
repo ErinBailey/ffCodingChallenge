@@ -15,16 +15,21 @@ type MachineInfo struct {
 	Longitude string `csv:"longitude (N)"`
 }
 
-// type MachineInfoWithFloat struct {
-// 	Latitude  float64
-// 	Longitude float64
-// }
-
 type FinalMachineInfo struct {
 	Name      string
 	Address   string
 	Latitude  float64
 	Longitude float64
+}
+
+type Distances struct {
+	From     string
+	To       string
+	Distance float64
+}
+
+type Node struct {
+	Name string
 }
 
 func UnmarshalCSV() ([]FinalMachineInfo, error) {
@@ -64,18 +69,18 @@ Allstate HQ (Tenants Only),"3075 Sanders Rd, Northbrook, IL  60062",42.09674,-87
 		}
 		finalMachineInfo = append(finalMachineInfo, machineInfo)
 	}
-	fmt.Printf("Final Output with %+v", finalMachineInfo)
+	// fmt.Printf("Final Output with %+v", finalMachineInfo)
 	return finalMachineInfo, nil
 }
 
-func Distance(locations []FinalMachineInfo) float64 {
-	// var final []FinalMachineInfo
+func DistanceBetweenTwoPoints(locations []FinalMachineInfo) []Distances {
+	var distances []Distances
 	for _, points := range locations {
-		for _, innerPoints := range locations {
+		for j, _ := range locations {
 			lat1 := points.Latitude
-			lat2 := innerPoints.Latitude
+			lat2 := locations[j].Latitude
 			lon1 := points.Longitude
-			lon2 := innerPoints.Longitude
+			lon2 := locations[j].Longitude
 
 			var R = float64(6371)
 			var x1 = lat2 - lat1
@@ -87,12 +92,27 @@ func Distance(locations []FinalMachineInfo) float64 {
 					math.Sin(dLon/2)*math.Sin(dLon/2)
 			var c = 2 * math.Atan2(math.Sqrt(a), math.Sqrt(1-a))
 			var distance = R * c
-			fmt.Printf("distance from %s to %s: %f", points.Name, innerPoints.Name, distance)
-			// final = append(final, distance)
+			fmt.Printf("\ndistance from %s to %s: %f \n", points.Name, locations[j].Name, distance)
+			newDistance := Distances{
+				From:     points.Name,
+				To:       locations[j].Name,
+				Distance: distance,
+			}
+			// make a map and compare keys to values and don't append them to the list if they are equal. i.e A -> B
+			// is the same as B -> A De dupe the data!
+			// map = make(map[string]string)
+
+			distances = append(distances, newDistance)
 		}
-		return 0.0
 	}
-	return 0.0
+	fmt.Println("Distances", distances)
+	fmt.Println("Length of Distances", len(distances))
+	return distances
+}
+
+func CalculateShortestPath() error {
+
+	return nil
 }
 
 func main() {
@@ -100,6 +120,5 @@ func main() {
 	if err != nil {
 		fmt.Println("Error retrieving unmarshalled data in main", err.Error())
 	}
-	Distance(finalMachineInfo)
-
+	DistanceBetweenTwoPoints(finalMachineInfo)
 }
