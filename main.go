@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"math"
-	sort "sort"
 	"strconv"
 
 	"github.com/jweir/csv"
@@ -32,12 +31,6 @@ type Distances struct {
 type Route struct {
 	Name     string
 	Distance float64
-}
-
-type Node struct {
-	Name         string
-	Visited      bool
-	AdjacentEdge float64
 }
 
 func UnmarshalCSV() ([]FinalMachineInfo, error) {
@@ -82,9 +75,9 @@ Allstate HQ (Tenants Only),"3075 Sanders Rd, Northbrook, IL  60062",42.09674,-87
 	return finalMachineInfo, nil
 }
 
-func DistanceBetweenTwoPoints(locations []FinalMachineInfo) []Distances {
+func DistanceBetweenTwoPoints(locations []FinalMachineInfo) ([]Distances, map[float64]string) {
 	var distances []Distances
-	var routeList []map[float64]string
+	route := make(map[float64]string)
 	for _, points := range locations {
 		for j, _ := range locations {
 			lat1 := points.Latitude
@@ -104,9 +97,8 @@ func DistanceBetweenTwoPoints(locations []FinalMachineInfo) []Distances {
 			var distance = R * c
 			// fmt.Printf("\ndistance from %s to %s: %f \n", points.Name, locations[j].Name, distance)
 			routeName := fmt.Sprintf("From %s to %s", points.Name, locations[j].Name)
-			route := map[float64]string{
-				distance: routeName,
-			}
+			route[distance] = routeName
+			// route[distance] = routeName
 			// fmt.Println(route)
 			newDistance := Distances{
 				From:     points.Name,
@@ -114,39 +106,43 @@ func DistanceBetweenTwoPoints(locations []FinalMachineInfo) []Distances {
 				Distance: distance,
 			}
 			distances = append(distances, newDistance)
-			routeList = append(routeList, route)
+			// routeList = append(routeList, route)
 		}
 
 	}
-	DeDupe(routeList)
-	// fmt.Println(routeList)
-	return distances
+	return distances, route
 }
 
-func DeDupe(routes []map[float64]string, distancesArray []float64) []map[float64]string {
-
-	var keys []int
-	for k := range routes {
-		keys = append(keys, k)
+func MapDistancesToKey(distancesArray []float64, routes map[float64]string) map[float64]string {
+	deDupedRoutesMap := make(map[float64]string)
+	for i, _ := range distancesArray {
+		deDupedRoutesMap[distancesArray[i]] = routes[distancesArray[i]]
 	}
-	sort.Ints(keys)
-	for _, k := range keys {
-		fmt.Println("Key:", k, "Value:", routes[k])
-	}
-
-	return routes
+	return deDupedRoutesMap
 }
 
-func CalculateShortestPath(nodeDistances []Distances) []float64 {
+func DeDupe(distancesArray []float64) []float64 {
+	dupedDistances := map[float64]bool{}
+	deDupedDistances := []float64{}
+
+	for i := range distancesArray {
+		if distancesArray[i] != 0 {
+			if dupedDistances[distancesArray[i]] != true {
+				dupedDistances[distancesArray[i]] = true
+				deDupedDistances = append(deDupedDistances, distancesArray[i])
+			}
+		}
+	}
+	return deDupedDistances
+}
+
+func GrabAllDistances(nodeDistances []Distances) []float64 {
 	var distances []float64
 	for i, _ := range nodeDistances {
 		distances = append(distances, nodeDistances[i].Distance)
 	}
-	sort.Float64s(distances)
-	fmt.Println(distances)
-
-	// DeDupe()
-	return nil
+	deDuped := DeDupe(distances)
+	return deDuped
 }
 
 func main() {
@@ -154,6 +150,8 @@ func main() {
 	if err != nil {
 		fmt.Println("Error retrieving unmarshalled data in main", err.Error())
 	}
-	distances := DistanceBetweenTwoPoints(finalMachineInfo)
-	CalculateShortestPath(distances)
+	distances, routes := DistanceBetweenTwoPoints(finalMachineInfo)
+	dedupedistance := GrabAllDistances(distances)
+	graphOfNodes := MapDistancesToKey(dedupedistance, routes)
+	fmt.Println(graphOfNodes)
 }
