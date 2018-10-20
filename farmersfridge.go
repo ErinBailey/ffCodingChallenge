@@ -156,7 +156,6 @@ func DistanceBetweenTwoPoints(locations []FinalMachineInfo) ([]Distances, map[fl
 // 			startingPoint = distances[i]
 // 		}
 // 	}
-
 // }
 
 func main() {
